@@ -9,9 +9,63 @@
     html { scroll-behavior: smooth; }
     .fade-in { opacity: 0; transform: translateY(1rem); transition: opacity 0.7s ease, transform 0.7s ease; }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* Scroll Progress Bar */
+    #progressBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      width: 0%;
+      z-index: 9999;
+      transition: width 0.1s linear;
+    }
+
+    /* Typing cursor */
+    .typing-cursor::after {
+      content: '|';
+      animation: blink 1s step-start infinite;
+      color: #3b82f6;
+      margin-left: 2px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Back to top button */
+    #backToTop {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateY(10px);
+    }
+    #backToTop.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    /* Testimonial transition */
+    .testimonial-slide {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .testimonial-slide.hidden-slide {
+      opacity: 0;
+      transform: translateX(20px);
+      position: absolute;
+      pointer-events: none;
+    }
+    .testimonial-slide.active-slide {
+      opacity: 1;
+      transform: translateX(0);
+      position: relative;
+    }
   </style>
+<base target="_blank">
 </head>
 <body class="bg-white text-gray-900 transition-colors duration-300" id="app">
+
+  <!-- Scroll Progress Bar -->
+  <div id="progressBar"></div>
 
   <!-- Navigation -->
   <nav class="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-200 transition-colors duration-300" id="navbar">
@@ -24,7 +78,8 @@
         <a href="#home" class="hover:text-blue-600 transition-colors">Home</a>
         <a href="#about" class="hover:text-blue-600 transition-colors">About</a>
         <a href="#projects" class="hover:text-blue-600 transition-colors">Projects</a>
-        <a href="#contacts" class="hover:text-blue-600 transition-colors">Contact</a>
+        <a href="#testimonials" class="hover:text-blue-600 transition-colors">Testimonials</a>
+        <a href="#contact" class="hover:text-blue-600 transition-colors">Contact</a>
       </div>
       <button id="themeBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Toggle theme">
         <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -40,7 +95,7 @@
       Available for work
     </div>
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-      Building simple, <span class="text-blue-600">beautiful</span> web experiences
+      <span id="typingText" class="typing-cursor"></span>
     </h1>
     <p class="text-lg text-gray-500 max-w-xl mx-auto mb-8" id="heroText">
       A minimal portfolio template built with HTML, CSS, and vanilla JavaScript. No frameworks needed.
@@ -78,10 +133,27 @@
     </div>
   </section>
 
-  <!-- Projects Section -->
+  <!-- Projects Section with Filter -->
   <section id="projects" class="max-w-4xl mx-auto px-6 py-16 border-t border-gray-100 fade-in">
-    <h2 class="text-2xl font-bold mb-8">Featured Projects</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+      <h2 class="text-2xl font-bold">Featured Projects</h2>
+      <div class="flex flex-wrap gap-2" id="filterTabs">
+        <button data-filter="all" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-blue-600 text-white transition-all">All</button>
+        <button data-filter="web" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">Web</button>
+        <button data-filter="mobile" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">Mobile</button>
+        <button data-filter="tool" class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all">Tools</button>
+      </div>
+    </div>
     <div class="grid sm:grid-cols-2 gap-6" id="projectsGrid"></div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="max-w-4xl mx-auto px-6 py-16 border-t border-gray-100 fade-in">
+    <h2 class="text-2xl font-bold mb-8 text-center">What People Say</h2>
+    <div class="relative max-w-2xl mx-auto overflow-hidden min-h-[180px]" id="testimonialContainer">
+      <!-- Testimonials injected by JS -->
+    </div>
+    <div class="flex justify-center gap-2 mt-6" id="testimonialDots"></div>
   </section>
 
   <!-- Contact Section -->
@@ -114,35 +186,154 @@
     <p> Built with HTML, CSS & JS. No frameworks.</p>
   </footer>
 
+  <!-- Back to Top Button -->
+  <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 left-6 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all z-50" title="Back to top">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+  </button>
+
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 bg-gray-900 text-white rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     Message sent successfully!
   </div>
 
   <script>
-    // Project data
+    // ========== PROJECT DATA WITH CATEGORIES ==========
     const projects = [
-      { title: 'Weather Dashboard', desc: 'Real-time weather data with geolocation API.', color: 'from-sky-400 to-blue-500', icon: '☁️' },
-      { title: 'Task Manager', desc: 'Drag-and-drop todo app with local storage.', color: 'from-emerald-400 to-green-500', icon: '✅' },
-      { title: 'Music Player', desc: 'Custom audio player with playlist support.', color: 'from-violet-400 to-purple-500', icon: '🎵' },
-      { title: 'Chat App', desc: 'Real-time messaging with WebSocket.', color: 'from-rose-400 to-pink-500', icon: '💬' }
+      { title: 'Weather Dashboard', desc: 'Real-time weather data with geolocation API.', color: 'from-sky-400 to-blue-500', icon: '☁️', category: 'web' },
+      { title: 'Task Manager', desc: 'Drag-and-drop todo app with local storage.', color: 'from-emerald-400 to-green-500', icon: '✅', category: 'web' },
+      { title: 'Music Player', desc: 'Custom audio player with playlist support.', color: 'from-violet-400 to-purple-500', icon: '🎵', category: 'mobile' },
+      { title: 'Chat App', desc: 'Real-time messaging with WebSocket.', color: 'from-rose-400 to-pink-500', icon: '💬', category: 'web' },
+      { title: 'CSS Grid Builder', desc: 'Visual tool for generating CSS grid code.', color: 'from-amber-400 to-orange-500', icon: '🛠️', category: 'tool' },
+      { title: 'Fitness Tracker', desc: 'Workout logging with charts and progress.', color: 'from-teal-400 to-cyan-500', icon: '💪', category: 'mobile' }
     ];
 
-    // Render projects
+    // ========== RENDER PROJECTS ==========
     const grid = document.getElementById('projectsGrid');
-    projects.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'group p-6 rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer bg-white';
-      card.innerHTML = `
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">${p.icon}</div>
-        <h3 class="font-semibold text-lg mb-1 group-hover:text-blue-600 transition-colors">${p.title}</h3>
-        <p class="text-sm text-gray-500">${p.desc}</p>
-      `;
-      card.onclick = () => showToast(`Opening ${p.title}...`);
-      grid.appendChild(card);
+    function renderProjects(filter = 'all') {
+      grid.innerHTML = '';
+      const filtered = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+      filtered.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'group p-6 rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer bg-white';
+        card.style.animation = `fadeInUp 0.4s ease ${i * 0.05}s both`;
+        card.innerHTML = `
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${p.color} flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">${p.icon}</div>
+          <div class="flex items-center gap-2 mb-1">
+            <h3 class="font-semibold text-lg group-hover:text-blue-600 transition-colors">${p.title}</h3>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-bold">${p.category}</span>
+          </div>
+          <p class="text-sm text-gray-500">${p.desc}</p>
+        `;
+        card.onclick = () => showToast(`Opening ${p.title}...`);
+        grid.appendChild(card);
+      });
+    }
+    renderProjects();
+
+    // ========== FILTER TABS ==========
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('bg-blue-600', 'text-white');
+          b.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        btn.classList.remove('bg-gray-100', 'text-gray-600');
+        btn.classList.add('bg-blue-600', 'text-white');
+        renderProjects(btn.dataset.filter);
+      });
     });
 
-    // Theme toggle
+    // ========== TYPING ANIMATION ==========
+    const phrases = ['Building simple, beautiful web experiences', 'Crafting clean, modern interfaces', 'Turning ideas into code'];
+    let phraseIndex = 0, charIndex = 0, isDeleting = false;
+    const typingEl = document.getElementById('typingText');
+
+    function typeEffect() {
+      const current = phrases[phraseIndex];
+      if (isDeleting) {
+        typingEl.textContent = current.substring(0, charIndex - 1);
+        charIndex--;
+      } else {
+        typingEl.textContent = current.substring(0, charIndex + 1);
+        charIndex++;
+      }
+
+      let speed = isDeleting ? 50 : 100;
+      if (!isDeleting && charIndex === current.length) {
+        speed = 2000;
+        isDeleting = true;
+      } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        speed = 500;
+      }
+      setTimeout(typeEffect, speed);
+    }
+    typeEffect();
+
+    // ========== TESTIMONIALS CAROUSEL ==========
+    const testimonials = [
+      { name: 'Sarah Chen', role: 'Product Manager', text: 'The attention to detail and clean code structure made collaborating a breeze. Highly recommended!', avatar: 'SC' },
+      { name: 'Marcus Johnson', role: 'Startup Founder', text: 'Delivered exactly what we needed — fast, responsive, and beautifully designed. A true professional.', avatar: 'MJ' },
+      { name: 'Elena Rodriguez', role: 'UX Designer', text: 'Working with this developer was seamless. They understood the design vision and executed it perfectly.', avatar: 'ER' }
+    ];
+
+    const tContainer = document.getElementById('testimonialContainer');
+    const tDots = document.getElementById('testimonialDots');
+    let currentTestimonial = 0;
+
+    testimonials.forEach((t, i) => {
+      const slide = document.createElement('div');
+      slide.className = `testimonial-slide ${i === 0 ? 'active-slide' : 'hidden-slide'} text-center`;
+      slide.innerHTML = `
+        <p class="text-lg text-gray-600 italic mb-6">"${t.text}"</p>
+        <div class="flex items-center justify-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">${t.avatar}</div>
+          <div class="text-left">
+            <p class="font-semibold text-sm">${t.name}</p>
+            <p class="text-xs text-gray-400">${t.role}</p>
+          </div>
+        </div>
+      `;
+      tContainer.appendChild(slide);
+
+      const dot = document.createElement('button');
+      dot.className = `w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-blue-600 w-6' : 'bg-gray-300'}`;
+      dot.onclick = () => showTestimonial(i);
+      tDots.appendChild(dot);
+    });
+
+    function showTestimonial(index) {
+      const slides = tContainer.querySelectorAll('.testimonial-slide');
+      const dots = tDots.querySelectorAll('button');
+      slides.forEach((s, i) => {
+        s.classList.toggle('active-slide', i === index);
+        s.classList.toggle('hidden-slide', i !== index);
+      });
+      dots.forEach((d, i) => {
+        d.className = `w-2 h-2 rounded-full transition-all ${i === index ? 'bg-blue-600 w-6' : 'bg-gray-300'}`;
+      });
+      currentTestimonial = index;
+    }
+
+    setInterval(() => {
+      showTestimonial((currentTestimonial + 1) % testimonials.length);
+    }, 5000);
+
+    // ========== SCROLL PROGRESS BAR ==========
+    window.addEventListener('scroll', () => {
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const progress = (scrollTop / scrollHeight) * 100;
+      document.getElementById('progressBar').style.width = progress + '%';
+
+      // Back to top visibility
+      const btt = document.getElementById('backToTop');
+      if (scrollTop > 400) btt.classList.add('show');
+      else btt.classList.remove('show');
+    });
+
+    // ========== THEME TOGGLE ==========
     let dark = false;
     const themeBtn = document.getElementById('themeBtn');
     const moon = document.getElementById('moonIcon');
@@ -152,7 +343,6 @@
       dark = !dark;
       const app = document.getElementById('app');
       const nav = document.getElementById('navbar');
-      const navLinks = document.getElementById('navLinks');
       const footer = document.getElementById('footer');
 
       if (dark) {
@@ -203,7 +393,6 @@
         if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.1 });
-
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
   </script>
 </body>
